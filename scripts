@@ -1,0 +1,91 @@
+﻿# load-test.ps1
+param(
+    [int] = 300,
+    [int] = 1000
+)
+
+function Write-ColorOutput {
+    param(
+        [string],
+        [string] = "White"
+    )
+    Write-Host  -ForegroundColor 
+}
+
+function Test-Load {
+    param(
+        [string],
+        [int],
+        [int]
+    )
+    
+    Write-ColorOutput "
+Testing with  concurrent users for  seconds" "Yellow"
+     = hey -z "s" -c  -q 10 
+    Write-ColorOutput "Results for  users:" "Green"
+    Write-Host 
+    return 
+}
+
+# Получаем URL для тестирования
+if (Get-Command minikube -ErrorAction SilentlyContinue) {
+    \ = minikube ip
+    \ = "http://$minikubeIp"
+} else {
+    \ = "http://localhost"
+}
+
+Write-ColorOutput "Starting load test against: $testUrl" "Cyan"
+Write-ColorOutput "Cluster information:" "Cyan"
+kubectl get nodes
+kubectl get pods -o wide
+
+# Мониторинг перед тестом
+Write-ColorOutput "
+Initial cluster state:" "Magenta"
+kubectl top nodes
+kubectl top pods
+kubectl get hpa
+
+# Фаза 1: Постепенное увеличение нагрузки
+Write-ColorOutput "
+=== PHASE 1: Ramp Up Load ===" "Green"
+@(10, 25, 50, 100, 200) | ForEach-Object {
+    Test-Load -Url \ -ConcurrentUsers \ -TestDuration 30
+    Start-Sleep -Seconds 10
+    
+    # Мониторинг состояния
+    Write-ColorOutput "Current cluster state:" "Magenta"
+    kubectl top nodes
+    kubectl top pods
+    kubectl get hpa
+    kubectl get pods -o wide | findstr nginx
+}
+
+# Фаза 2: Пиковая нагрузка
+Write-ColorOutput "
+=== PHASE 2: Peak Load ===" "Red"
+Test-Load -Url \ -ConcurrentUsers 500 -TestDuration 120
+
+# Мониторинг во время пиковой нагрузки
+Write-ColorOutput "Peak load cluster state:" "Magenta"
+kubectl top nodes
+kubectl top pods
+kubectl get hpa
+kubectl describe hpa nginx-hpa
+
+# Фаза 3: Длительная нагрузка
+Write-ColorOutput "
+=== PHASE 3: Sustained Load ===" "Yellow"
+Test-Load -Url \ -ConcurrentUsers 150 -TestDuration \
+
+# Финальный мониторинг
+Write-ColorOutput "
+Final cluster state:" "Magenta"
+kubectl top nodes
+kubectl top pods
+kubectl get hpa
+kubectl get pods -o wide | findstr nginx
+
+Write-ColorOutput "
+Load test completed!" "Cyan"

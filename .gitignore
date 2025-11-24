@@ -1,0 +1,42 @@
+﻿# Kubernetes
+kubeconfig
+*.kubeconfig
+
+# Logs
+*.log
+logs/
+**/*.log
+
+# Temporary files
+*.tmp
+*.temp
+temp/
+tmp/
+
+# Reports
+*-report.txt
+reports/
+
+# Local configuration
+.local/
+.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Backup files
+*.bak
+*.backup
+
+# PowerShell
+*.ps1xml
+
+# Chocolatey
+chocolatey/
